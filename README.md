@@ -69,10 +69,11 @@ Stack에는 Workspace 같은 변수 화면이 없으므로, 환경 정보는 **V
 | `tenant_id` | Tenant ID |
 | `client_id` | 위에서 만든 App Registration Client ID |
 | `client_secret` | Client Secret **Value** — **Sensitive 체크** |
-| `ssh_public_key` | `cat ~/.ssh/id_ed25519.pub` 결과 |
 | `subscription_id_cloud` | Cloud 구독 ID |
 | `subscription_id_data` | Data 구독 ID |
 | `subscription_id_infra` | Infra 구독 ID |
+
+> `store "varset"` 값은 항상 ephemeral 이라 provider 인증에만 쓸 수 있습니다. VM에 들어가는 `ssh_public_key`는 `deployments.tfdeploy.hcl`의 `locals`에 직접 적습니다 (공개키라 비밀 아님).
 
 4. Variable Set ID(`varset-...`)를 `deployments.tfdeploy.hcl`의 `store "varset" "azure"` → `id`에 입력
 

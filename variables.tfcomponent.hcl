@@ -29,6 +29,7 @@ variable "vm_size" {
   default = "Standard_B1s"
 }
 
+# VM 리소스 인자로 들어가므로 ephemeral 불가 → Variable Set 이 아닌 코드(deployments)에서 전달
 variable "ssh_public_key" {
   description = "VM 관리자 SSH 공개키 (공개키라 비밀 아님)"
   type        = string
@@ -36,17 +37,22 @@ variable "ssh_public_key" {
 
 # ── Azure 인증 (Service Principal + Client Secret) ────────
 # 구독 ID만 바꿔서 같은 코드를 3개 구독에 배포하는 것이 이 데모의 핵심
+# store "varset" 에서 읽은 값은 항상 ephemeral → 받는 변수도 ephemeral = true 필요
+# (provider 설정에만 쓰이므로 ephemeral 이어도 문제 없음)
 variable "subscription_id" {
-  type = string
+  type      = string
+  ephemeral = true
 }
 
 variable "tenant_id" {
-  type = string
+  type      = string
+  ephemeral = true
 }
 
 variable "client_id" {
   description = "App Registration(Service Principal)의 Application(client) ID"
   type        = string
+  ephemeral   = true
 }
 
 # App Registration → Certificates & secrets 의 "Value" (Secret ID 아님)
@@ -54,4 +60,5 @@ variable "client_id" {
 variable "client_secret" {
   type      = string
   ephemeral = true
+  sensitive = true # Variable Set 에서 Sensitive 로 등록된 값
 }
