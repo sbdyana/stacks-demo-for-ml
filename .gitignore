@@ -1,0 +1,22 @@
+# Terraform 로컬 캐시
+.terraform/
+
+# State / Plan 파일 (민감 정보가 평문으로 들어갈 수 있음)
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# 로컬 환경변수 / 토큰
+.env
+*.env
+
+# SSH 개인키 등 (공개키 .pub 만 허용)
+*.pem
+*.key
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# 주의: .terraform.lock.hcl 은 Stacks 필수 파일이므로 제외하지 않음
