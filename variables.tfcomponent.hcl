@@ -26,7 +26,7 @@ variable "vnet_cidr" {
 
 variable "vm_size" {
   type    = string
-  default = "Standard_B2ats_v2"
+  default = "Standard_D2s_v3"
 }
 
 # VM 리소스 인자로 들어가므로 ephemeral 불가 → Variable Set 이 아닌 코드(deployments)에서 전달
