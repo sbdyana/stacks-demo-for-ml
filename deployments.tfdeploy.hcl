@@ -12,7 +12,7 @@
 #  - Variable Set 키: tenant_id, client_id, client_secret(Sensitive), ssh_public_key, subscription_id_cloud
 #                     (+ subscription_id_data, subscription_id_infra — 해당 deployment 활성화 시)
 store "varset" "azure" {
-  id       = "varset-XXXXXXXXXXXXXXXX" # Variable Set ID (Settings → Variable sets → 해당 Set의 URL/ID)
+  id       = "varset-oWW5DxDWVgvtLZQe" # Variable Set ID (Settings → Variable sets → 해당 Set의 URL/ID)
   category = "terraform"
 }
 
