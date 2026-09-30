@@ -1,6 +1,6 @@
 # 03-stacks — HCP Terraform Stacks로 Azure 구독 3개에 한 번에 배포
 
-같은 코드(components)를 **deployment 3개(Cloud / Data / Infra) = Azure 구독 3개**에 배포합니다.
+같은 코드(components)를 **deployment 3개(Cloud / Data&AI / Infra) = Azure 구독 3개**에 배포합니다.
 구독마다 Workspace를 따로 만들 필요 없이 Stack 하나로 관리하는 것이 핵심입니다.
 
 ## 아키텍처 (구독당 동일 · 생성 2~3분)
@@ -8,7 +8,7 @@
 ```
 Stack: azure-multi-sub
  ├─ deployment "cloud" ─▶ Cloud 구독 ┐
- ├─ deployment "data"  ─▶ Data 구독  ├─ 각 구독에 동일하게:
+ ├─ deployment "data-ai" ─▶ Data&AI 구독 ├─ 각 구독에 동일하게:
  └─ deployment "infra" ─▶ Infra 구독 ┘
                                  component "resource_group" : Resource Group
                                    └─▶ component "network"  : VNet + Subnet + NSG (무료, SSH는 VNet 내부만 허용)
@@ -18,7 +18,7 @@ Stack: azure-multi-sub
 | 구독 | VNet | VM |
 |---|---|---|
 | Cloud | 10.10.0.0/16 | Standard_D2s_v3 |
-| Data | 10.20.0.0/16 | Standard_D2s_v3 |
+| Data&AI | 10.20.0.0/16 | Standard_D2s_v3 |
 | Infra | 10.30.0.0/16 | Standard_D2s_v3 |
 
 > 비용: D2s_v3 1대 시간당 약 $0.1 + OS 디스크(Standard HDD) → 시연 후 바로 삭제하면 몇백 원 수준
@@ -31,7 +31,7 @@ Stack: azure-multi-sub
 | `providers.tfcomponent.hcl` | `required_providers` + `provider "azurerm" "this" { config { ... } }` (Client Secret 인증) |
 | `components.tfcomponent.hcl` | component 3개 = 기존 모듈 재사용, `component.X.Y`로 의존성 연결 |
 | `outputs.tfcomponent.hcl` | deployment별 VM 이름 / Private IP 등 |
-| `deployments.tfdeploy.hcl` | `store "varset"` + deployment (현재 cloud만 활성, data/infra 주석) |
+| `deployments.tfdeploy.hcl` | `store "varset"` + deployment (현재 cloud, data-ai 활성 / infra 주석) |
 | `.terraform-version` | **Stacks 필수** — Stack 실행에 쓸 Terraform 버전 (1.14.0) |
 | `.terraform.lock.hcl` | **Stacks는 lock 파일 필수** (azurerm 5.7.0 / linux_amd64 포함) |
 | `modules/` | 일반 Terraform 모듈 (Stack이 아니어도 그대로 재사용 가능) |
@@ -41,7 +41,7 @@ Stack: azure-multi-sub
 App Registration 1개를 만들고 **배포할 구독에 Contributor 권한**을 준 뒤 Client Secret을 발급합니다.
 
 ```bash
-SUBS=(<Cloud-구독ID>)   # Data/Infra 구독이 생기면 추가
+SUBS=(<Cloud-구독ID> <DataAI-구독ID>)   # Infra 구독이 생기면 추가
 
 APP_ID=$(az ad app create --display-name hcp-stacks-demo --query appId -o tsv)
 az ad sp create --id $APP_ID
@@ -62,7 +62,7 @@ Stack에는 Workspace 같은 변수 화면이 없으므로, 환경 정보는 **V
 
 1. HCP Terraform → Settings → **Variable sets → Create** (예: `stacks-demo-azure`)
 2. 적용 범위: Stack이 속한 **Project에 공유**
-3. **Terraform variable**로 아래 값 등록 (data/infra 구독 ID는 해당 deployment 활성화 시)
+3. **Terraform variable**로 아래 값 등록 (infra 구독 ID는 해당 deployment 활성화 시)
 
 | Key | Value |
 |---|---|
@@ -70,7 +70,7 @@ Stack에는 Workspace 같은 변수 화면이 없으므로, 환경 정보는 **V
 | `client_id` | 위에서 만든 App Registration Client ID |
 | `client_secret` | Client Secret **Value** — **Sensitive 체크** |
 | `subscription_id_cloud` | Cloud 구독 ID |
-| `subscription_id_data` | Data 구독 ID |
+| `subscription_id_data_ai` | Data&AI 구독 ID |
 | `subscription_id_infra` | Infra 구독 ID |
 
 > `store "varset"` 값은 항상 ephemeral 이라 provider 인증에만 쓸 수 있습니다. VM에 들어가는 `ssh_public_key`는 `deployments.tfdeploy.hcl`의 `locals`에 직접 적습니다 (공개키라 비밀 아님).
@@ -83,14 +83,14 @@ Stack에는 Workspace 같은 변수 화면이 없으므로, 환경 정보는 **V
 
 1. 이 폴더를 VCS(GitHub/GitLab)에 push
 2. HCP Terraform → Project → **New → Stack** → VCS 연결, 이름 `azure-multi-sub`, Working Directory `03-stacks`
-3. Stack이 설정을 읽어 **deployment 3개(cloud/data/infra)** 에 대해 각각 Plan 생성
+3. Stack이 설정을 읽어 **deployment 3개(cloud/data-ai/infra)** 에 대해 각각 Plan 생성
 4. 각 deployment의 Plan을 Approve → Apply (component 의존성 순서: resource_group → network → vm)
 5. 각 deployment의 Outputs(`vm_name`, `vm_private_ip`) 확인 → Azure Portal에서 구독 3개에 VM이 하나씩 생성된 것 확인
 
 ## 2. (시연 포인트) 변경 한 번 → 3개 구독 동시 반영
 
 예) `components.tfcomponent.hcl`의 `local.tags`에 `owner = "platform-team"` 추가 후 push
-→ 새 Configuration 버전 하나로 **cloud/data/infra 3개 Plan이 동시에** 생성됨 → 구독별로 순서대로 승인
+→ 새 Configuration 버전 하나로 **cloud/data-ai/infra 3개 Plan이 동시에** 생성됨 → 구독별로 순서대로 승인
 
 ## 3. 정리
 

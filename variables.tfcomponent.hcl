@@ -5,7 +5,7 @@
 ############################################################
 
 variable "environment" {
-  description = "배포 대상 구독 이름 (cloud / data / infra)"
+  description = "배포 대상 구독 이름 (cloud / data-ai / infra) — 리소스 이름에 쓰이므로 & 등 특수문자 불가"
   type        = string
 }
 

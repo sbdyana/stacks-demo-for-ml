@@ -10,8 +10,9 @@
 #  - Stack에는 Workspace 같은 변수 화면이 없으므로 store "varset" 블록으로 가져옴
 #  - Variable Set은 Stack이 속한 Project 에 공유되어 있어야 함
 #  - store 값은 ephemeral → provider 인증에만 사용 가능 (리소스 인자에는 못 씀)
-#  - Variable Set 키: tenant_id, client_id, client_secret(Sensitive), subscription_id_cloud
-#                     (+ subscription_id_data, subscription_id_infra — 해당 deployment 활성화 시)
+#  - Variable Set 키: tenant_id, client_id, client_secret(Sensitive),
+#                     subscription_id_cloud, subscription_id_data_ai
+#                     (+ subscription_id_infra — 해당 deployment 활성화 시)
 store "varset" "azure" {
   id       = "varset-oWW5DxDWVgvtLZQe" # Variable Set ID (Settings → Variable sets → 해당 Set의 URL/ID)
   category = "terraform"
@@ -39,24 +40,23 @@ deployment "cloud" {
   }
 }
 
-# ── Data / Infra 구독: 구독 ID 발급 전까지 비활성화 ─────────────
-#  구독이 준비되면 아래 주석을 풀고 Variable Set에
-#  subscription_id_data / subscription_id_infra 를 추가
-# deployment "data" {
-#   inputs = {
-#     environment = "data"
-#     prefix      = local.prefix
-#     vnet_cidr   = "10.20.0.0/16"
-#     vm_size     = "Standard_D2s_v3"
-#
-#     subscription_id = store.varset.azure.subscription_id_data
-#     tenant_id       = store.varset.azure.tenant_id
-#     client_id       = store.varset.azure.client_id
-#     ssh_public_key  = local.ssh_public_key
-#     client_secret   = store.varset.azure.client_secret
-#   }
-# }
-#
+deployment "data-ai" {
+  inputs = {
+    environment = "data-ai"
+    prefix      = local.prefix
+    vnet_cidr   = "10.20.0.0/16"
+    vm_size     = "Standard_D2s_v3"
+
+    subscription_id = store.varset.azure.subscription_id_data_ai
+    tenant_id       = store.varset.azure.tenant_id
+    client_id       = store.varset.azure.client_id
+    ssh_public_key  = local.ssh_public_key
+    client_secret   = store.varset.azure.client_secret
+  }
+}
+
+# ── Infra 구독: 구독 ID 발급 전까지 비활성화 ─────────────
+#  구독이 준비되면 아래 주석을 풀고 Variable Set에 subscription_id_infra 를 추가
 # deployment "infra" {
 #   inputs = {
 #     environment = "infra"
@@ -71,6 +71,4 @@ deployment "cloud" {
 #     client_secret   = store.varset.azure.client_secret
 #   }
 #
-#   # 시연 후 정리: 아래 주석을 풀고 push → Infra 구독의 리소스가 삭제됨
-#   # destroy = true
 # }
