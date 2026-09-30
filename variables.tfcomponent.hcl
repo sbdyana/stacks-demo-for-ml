@@ -34,7 +34,7 @@ variable "ssh_public_key" {
   type        = string
 }
 
-# ── Azure 인증 (OIDC / Workload Identity) ─────────────────
+# ── Azure 인증 (Service Principal + Client Secret) ────────
 # 구독 ID만 바꿔서 같은 코드를 3개 구독에 배포하는 것이 이 데모의 핵심
 variable "subscription_id" {
   type = string
@@ -45,13 +45,13 @@ variable "tenant_id" {
 }
 
 variable "client_id" {
-  description = "Federated Credential이 등록된 App Registration(또는 Managed Identity)의 Client ID"
+  description = "App Registration(Service Principal)의 Application(client) ID"
   type        = string
 }
 
-# HCP Terraform이 Run마다 발급하는 JWT.
+# App Registration → Certificates & secrets 의 "Value" (Secret ID 아님)
 # 데모 1에서 본 ephemeral 과 같은 개념 → State/Plan에 저장되지 않음
-variable "identity_token" {
+variable "client_secret" {
   type      = string
   ephemeral = true
 }

@@ -27,21 +27,21 @@ Stack: azure-multi-sub
 
 | 파일 | 역할 |
 |---|---|
-| `variables.tfcomponent.hcl` | Stack 입력 변수 (`identity_token`은 `ephemeral = true`) |
-| `providers.tfcomponent.hcl` | `required_providers` + `provider "azurerm" "this" { config { ... } }` (OIDC 인증) |
+| `variables.tfcomponent.hcl` | Stack 입력 변수 (`client_secret`은 `ephemeral = true`) |
+| `providers.tfcomponent.hcl` | `required_providers` + `provider "azurerm" "this" { config { ... } }` (Client Secret 인증) |
 | `components.tfcomponent.hcl` | component 3개 = 기존 모듈 재사용, `component.X.Y`로 의존성 연결 |
 | `outputs.tfcomponent.hcl` | deployment별 VM 이름 / Private IP 등 |
-| `deployments.tfdeploy.hcl` | `identity_token` + deployment 3개 (구독 ID만 다름) |
+| `deployments.tfdeploy.hcl` | `store "varset"` + deployment (현재 cloud만 활성, data/infra 주석) |
+| `.terraform-version` | **Stacks 필수** — Stack 실행에 쓸 Terraform 버전 (1.14.0) |
 | `.terraform.lock.hcl` | **Stacks는 lock 파일 필수** (azurerm 5.7.0 / linux_amd64 포함) |
 | `modules/` | 일반 Terraform 모듈 (Stack이 아니어도 그대로 재사용 가능) |
 
-## 0. 준비 — Azure OIDC (Secret 없이 인증)
+## 0. 준비 — Azure Service Principal (Client Secret)
 
-App Registration 1개에 **3개 구독 Contributor 권한** + **deployment × (plan/apply) = 6개 Federated Credential**을 등록합니다.
+App Registration 1개를 만들고 **배포할 구독에 Contributor 권한**을 준 뒤 Client Secret을 발급합니다.
 
 ```bash
-ORG=<hcp-org>; PROJECT=<hcp-project>; STACK=azure-multi-sub
-SUBS=(<Cloud-구독ID> <Data-구독ID> <Infra-구독ID>)
+SUBS=(<Cloud-구독ID>)   # Data/Infra 구독이 생기면 추가
 
 APP_ID=$(az ad app create --display-name hcp-stacks-demo --query appId -o tsv)
 az ad sp create --id $APP_ID
@@ -49,17 +49,12 @@ for s in "${SUBS[@]}"; do
   az role assignment create --assignee $APP_ID --role Contributor --scope /subscriptions/$s
 done
 
-for d in cloud data infra; do for op in plan apply; do
-  az ad app federated-credential create --id $APP_ID --parameters "{
-    \"name\": \"stacks-$d-$op\",
-    \"issuer\": \"https://app.terraform.io\",
-    \"subject\": \"organization:$ORG:project:$PROJECT:stack:$STACK:deployment:$d:operation:$op\",
-    \"audiences\": [\"api://AzureADTokenExchange\"]
-  }"
-done; done
-
-echo "client_id=$APP_ID  tenant_id=$(az account show --query tenantId -o tsv)"
+# Client Secret 발급 (password 값은 이때 한 번만 출력됨)
+az ad app credential reset --id $APP_ID --display-name hcp-stacks --years 1 \
+  --query "{client_id:appId, client_secret:password, tenant_id:tenant}" -o json
 ```
+
+> Portal에서 발급할 경우 **Certificates & secrets → New client secret** 후 **Value** 칸을 복사합니다 (Secret ID 아님).
 
 ## 0-1. 준비 — HCP Variable Set
 
@@ -67,12 +62,13 @@ Stack에는 Workspace 같은 변수 화면이 없으므로, 환경 정보는 **V
 
 1. HCP Terraform → Settings → **Variable sets → Create** (예: `stacks-demo-azure`)
 2. 적용 범위: Stack이 속한 **Project에 공유**
-3. **Terraform variable**로 아래 6개 등록
+3. **Terraform variable**로 아래 값 등록 (data/infra 구독 ID는 해당 deployment 활성화 시)
 
 | Key | Value |
 |---|---|
 | `tenant_id` | Tenant ID |
 | `client_id` | 위에서 만든 App Registration Client ID |
+| `client_secret` | Client Secret **Value** — **Sensitive 체크** |
 | `ssh_public_key` | `cat ~/.ssh/id_ed25519.pub` 결과 |
 | `subscription_id_cloud` | Cloud 구독 ID |
 | `subscription_id_data` | Data 구독 ID |
