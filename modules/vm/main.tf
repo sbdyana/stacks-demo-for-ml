@@ -1,5 +1,5 @@
 ############################################################
-# Linux VM 1대 (Standard_B1s, Public IP 없음)
+# Linux VM 1대 (Standard_B2ats_v2, Public IP 없음)
 #  - network 컴포넌트의 subnet 에 NIC 연결
 #  - 로그인은 SSH 공개키만 사용 (비밀번호/개인키를 State에 남기지 않음)
 ############################################################
@@ -30,7 +30,7 @@ variable "subnet_id" {
 
 variable "vm_size" {
   type    = string
-  default = "Standard_B1s"
+  default = "Standard_B2ats_v2"
 }
 
 variable "admin_username" {

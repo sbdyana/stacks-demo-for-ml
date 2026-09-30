@@ -29,7 +29,7 @@ deployment "cloud" {
     environment = "cloud"
     prefix      = local.prefix
     vnet_cidr   = "10.10.0.0/16"
-    vm_size     = "Standard_B1s"
+    vm_size     = "Standard_B2ats_v2"
 
     subscription_id = store.varset.azure.subscription_id_cloud
     tenant_id       = store.varset.azure.tenant_id
@@ -47,7 +47,7 @@ deployment "cloud" {
 #     environment = "data"
 #     prefix      = local.prefix
 #     vnet_cidr   = "10.20.0.0/16"
-#     vm_size     = "Standard_B1s"
+#     vm_size     = "Standard_B2ats_v2"
 #
 #     subscription_id = store.varset.azure.subscription_id_data
 #     tenant_id       = store.varset.azure.tenant_id
@@ -62,7 +62,7 @@ deployment "cloud" {
 #     environment = "infra"
 #     prefix      = local.prefix
 #     vnet_cidr   = "10.30.0.0/16"
-#     vm_size     = "Standard_B1s"
+#     vm_size     = "Standard_B2ats_v2"
 #
 #     subscription_id = store.varset.azure.subscription_id_infra
 #     tenant_id       = store.varset.azure.tenant_id

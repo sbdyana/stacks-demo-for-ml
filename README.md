@@ -12,16 +12,16 @@ Stack: azure-multi-sub
  └─ deployment "infra" ─▶ Infra 구독 ┘
                                  component "resource_group" : Resource Group
                                    └─▶ component "network"  : VNet + Subnet + NSG (무료, SSH는 VNet 내부만 허용)
-                                         └─▶ component "vm" : Ubuntu 24.04 VM 1대 (Standard_B1s, Public IP 없음)
+                                         └─▶ component "vm" : Ubuntu 24.04 VM 1대 (Standard_B2ats_v2, Public IP 없음)
 ```
 
 | 구독 | VNet | VM |
 |---|---|---|
-| Cloud | 10.10.0.0/16 | Standard_B1s |
-| Data | 10.20.0.0/16 | Standard_B1s |
-| Infra | 10.30.0.0/16 | Standard_B1s |
+| Cloud | 10.10.0.0/16 | Standard_B2ats_v2 |
+| Data | 10.20.0.0/16 | Standard_B2ats_v2 |
+| Infra | 10.30.0.0/16 | Standard_B2ats_v2 |
 
-> 비용: B1s 1대 시간당 약 $0.01 + OS 디스크(Standard HDD) → 시연 후 바로 삭제하면 몇백 원 수준
+> 비용: B2ats_v2 1대 시간당 약 $0.01 + OS 디스크(Standard HDD) → 시연 후 바로 삭제하면 몇백 원 수준
 
 ## 파일 구성
 
@@ -77,7 +77,7 @@ Stack에는 Workspace 같은 변수 화면이 없으므로, 환경 정보는 **V
 
 4. Variable Set ID(`varset-...`)를 `deployments.tfdeploy.hcl`의 `store "varset" "azure"` → `id`에 입력
 
-> 구독에 따라 `koreacentral`에서 B1s 용량이 없다는 오류(SkuNotAvailable)가 나면 해당 deployment의 `vm_size`를 `Standard_B2ats_v2` 등으로 바꿉니다.
+> `koreacentral`에서는 구 B 시리즈(B1s 등)가 SkuNotAvailable로 막혀 있어 v2 계열을 사용합니다. 크기를 바꿀 땐 `az vm list-skus -l koreacentral --resource-type virtualMachines -o table`로 사용 가능 여부를 먼저 확인하세요.
 
 ## 1. Stack 생성 & 배포
 
