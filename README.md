@@ -18,8 +18,8 @@ Stack: azure-multi-sub
 | 구독 | VNet | VM |
 |---|---|---|
 | Cloud | 10.10.0.0/16 | Standard_D2s_v3 |
-| Data&AI | 10.20.0.0/16 | Standard_D2s_v3 |
-| Mendix | 10.30.0.0/16 | Standard_D2s_v3 |
+| Data&AI | 10.20.0.0/16 | Standard_D2s_v4 (이 구독은 D2s_v3 불가) |
+| Mendix | 10.30.0.0/16 | Standard_D2s_v4 (이 구독은 D2s_v3 불가) |
 
 > 비용: D2s_v3 1대 시간당 약 $0.1 + OS 디스크(Standard HDD) → 시연 후 바로 삭제하면 몇백 원 수준
 

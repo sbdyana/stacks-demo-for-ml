@@ -44,7 +44,7 @@ deployment "data-ai" {
     environment = "data-ai"
     prefix      = local.prefix
     vnet_cidr   = "10.20.0.0/16"
-    vm_size     = "Standard_D2s_v3"
+    vm_size     = "Standard_D2s_v4" # Data&AI 구독 koreacentral: D2s_v3 SkuNotAvailable → DSv4 사용
 
     subscription_id = store.varset.azure.subscription_id_data_ai
     tenant_id       = store.varset.azure.tenant_id
@@ -59,7 +59,7 @@ deployment "mendix" {
     environment = "mendix"
     prefix      = local.prefix
     vnet_cidr   = "10.30.0.0/16"
-    vm_size     = "Standard_D2s_v3"
+    vm_size     = "Standard_D2s_v4" # Mendix 구독 koreacentral: D2s_v3 SkuNotAvailable → DSv4 사용
 
     subscription_id = store.varset.azure.subscription_id_mendix
     tenant_id       = store.varset.azure.tenant_id
