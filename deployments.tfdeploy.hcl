@@ -11,8 +11,7 @@
 #  - Variable Set은 Stack이 속한 Project 에 공유되어 있어야 함
 #  - store 값은 ephemeral → provider 인증에만 사용 가능 (리소스 인자에는 못 씀)
 #  - Variable Set 키: tenant_id, client_id, client_secret(Sensitive),
-#                     subscription_id_cloud, subscription_id_data_ai
-#                     (+ subscription_id_infra — 해당 deployment 활성화 시)
+#                     subscription_id_cloud, subscription_id_data_ai, subscription_id_mendix
 store "varset" "azure" {
   id       = "varset-oWW5DxDWVgvtLZQe" # Variable Set ID (Settings → Variable sets → 해당 Set의 URL/ID)
   category = "terraform"
@@ -55,20 +54,17 @@ deployment "data-ai" {
   }
 }
 
-# ── Infra 구독: 구독 ID 발급 전까지 비활성화 ─────────────
-#  구독이 준비되면 아래 주석을 풀고 Variable Set에 subscription_id_infra 를 추가
-# deployment "infra" {
-#   inputs = {
-#     environment = "infra"
-#     prefix      = local.prefix
-#     vnet_cidr   = "10.30.0.0/16"
-#     vm_size     = "Standard_D2s_v3"
-#
-#     subscription_id = store.varset.azure.subscription_id_infra
-#     tenant_id       = store.varset.azure.tenant_id
-#     client_id       = store.varset.azure.client_id
-#     ssh_public_key  = local.ssh_public_key
-#     client_secret   = store.varset.azure.client_secret
-#   }
-#
-# }
+deployment "mendix" {
+  inputs = {
+    environment = "mendix"
+    prefix      = local.prefix
+    vnet_cidr   = "10.30.0.0/16"
+    vm_size     = "Standard_D2s_v3"
+
+    subscription_id = store.varset.azure.subscription_id_mendix
+    tenant_id       = store.varset.azure.tenant_id
+    client_id       = store.varset.azure.client_id
+    ssh_public_key  = local.ssh_public_key
+    client_secret   = store.varset.azure.client_secret
+  }
+}
